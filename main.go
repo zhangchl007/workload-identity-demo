@@ -4,11 +4,9 @@
 package main
 
 import (
+	"context"
 	"os"
 	"time"
-	"workload_identity_demo/pkg/azurerestmsal"
-
-	"context"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"k8s.io/klog"
@@ -24,11 +22,11 @@ func main() {
 		klog.Fatal("AZURE_STORAGE_ACCOUNT_NAME environment variable is not set")
 	}
 
-	azure_storage_account_Key := os.Getenv("AZURE_STORAGE_ACCOUNT_KEY")
+	/*azure_storage_account_Key := os.Getenv("AZURE_STORAGE_ACCOUNT_KEY")
 
 	if azure_storage_account_Key == "" {
 		klog.Fatal("AZURE_STORAGE_ACCOUNT_KEY environment variable is not set")
-	}
+	}*/
 
 	pod_name := os.Getenv("POD_NAME")
 
@@ -61,17 +59,8 @@ func main() {
 		klog.Fatal("AZURE_TENANT_ID environment variable is not set")
 	}
 
-	if tokenFilePath == "" {
-		klog.Fatal("AZURE_FEDERATED_TOKEN_FILE environment variable is not set")
-	}
-
-	if authorityHost == "" {
-		klog.Fatal("AZURE_AUTHORITY_HOST environment variable is not set")
-	}
-
-	//
-
-	cred, err := azurerestmsal.NewAzureMSALTokenCredential(context.Background(), clientID, tenantID, tokenFilePath, authorityHost)
+	// newClientAssertionCredential
+	cred, err := newClientAssertionCredential(tenantID, clientID, authorityHost, tokenFilePath, nil)
 	if err != nil {
 		klog.Fatal(err)
 	}

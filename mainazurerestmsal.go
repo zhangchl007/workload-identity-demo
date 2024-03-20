@@ -1,7 +1,7 @@
 //go:build go1.13
 
 // package azuremsal is a wrapper around the Azure SDK for Go's token credential
-package azurerestmsal
+package main
 
 import (
 	"context"

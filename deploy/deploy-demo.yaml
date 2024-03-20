@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    azure.workload.identity/use: "true"
+    app: workload-demo
+  name: workload-demo
+  namespace: kube-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: workload-demo
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        azure.workload.identity/use: "true"
+        app: workload-demo
+    spec:
+      containers:
+      - image: quay.io/zhangchl007/workloaddemo:v12
+        imagePullPolicy: Always
+        name: oidc
+        env:
+        - name: AZURE_STORAGE_ACCOUNT_NAME
+          value: "fusea1baa27d9bd44b269b8"
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+      serviceAccountName: workload-identity-sa

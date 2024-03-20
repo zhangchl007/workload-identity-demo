@@ -1,6 +1,6 @@
-module github.com/zhangchl007/workload-identity-demo
+module workload-identity-demo
 
-go 1.22.1
+go 1.21.7
 
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.10.0
