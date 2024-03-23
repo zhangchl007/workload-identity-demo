@@ -13,10 +13,11 @@ COPY main.go main.go
 
 # Build
 ARG TARGETARCH
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} GO111MODULE=on go build -a -o cmd/kafkaconAzmonitor .
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} GO111MODULE=on go build -a -o cmd/workload-demo .
 
 FROM --platform=${TARGETPLATFORM:-linux/amd64} mcr.microsoft.com/cbl-mariner/distroless/minimal:2.0-nonroot
 WORKDIR /
-COPY --from=builder /workspace/cmd/kafkaconAzmonitor .
+COPY --from=builder /workspace/cmd/workload-demo .
 # Kubernetes runAsNonRoot requires USER to be numeric
 USER 65532:65532
+CMD ["/workload-demo"]

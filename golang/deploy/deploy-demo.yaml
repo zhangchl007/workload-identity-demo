@@ -3,14 +3,14 @@ kind: Deployment
 metadata:
   labels:
     azure.workload.identity/use: "true"
-    app: workload-demo
-  name: workload-demo
-  namespace: kube-system
+    app: workload-golang
+  name: workload-golang
+  namespace: default
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: workload-demo
+      app: workload-golang
   strategy:
     rollingUpdate:
       maxSurge: 25%
@@ -20,15 +20,17 @@ spec:
     metadata:
       labels:
         azure.workload.identity/use: "true"
-        app: workload-demo
+        app: workload-golang
     spec:
       containers:
-      - image: quay.io/zhangchl007/workloaddemo:v12
+      - image: quay.io/zhangchl007/workloaddemo:v1
         imagePullPolicy: Always
         name: oidc
         env:
-        - name: AZURE_STORAGE_ACCOUNT_NAME
-          value: "fusea1baa27d9bd44b269b8"
+        - name: STORAGE_ACCOUNT_NAME
+          value: "mit000"
+        - name: STORAGE_CONTAINER_NAME
+          value: "mit"
         - name: POD_NAME
           valueFrom:
             fieldRef:
@@ -41,4 +43,38 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
-      serviceAccountName: workload-identity-sa
+      serviceAccountName: workidentity-sa
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - preference:
+              matchExpressions:
+              - key: kubernetes.azure.com/mode
+                operator: In
+                values:
+                - user
+            weight: 100
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.azure.com/cluster
+                operator: Exists
+              - key: type
+                operator: NotIn
+                values:
+                - virtual-kubelet
+              - key: kubernetes.io/os
+                operator: In
+                values:
+                - linux
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - workload-golang
+              topologyKey: topology.kubernetes.io/zone
+            weight: 100

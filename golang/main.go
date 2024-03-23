@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"k8s.io/klog"
 )
@@ -16,17 +17,17 @@ func main() {
 
 	// Azure Container
 
-	azure_storage_account_Name := os.Getenv("AZURE_STORAGE_ACCOUNT_NAME")
+	azure_storage_account_Name := os.Getenv("STORAGE_ACCOUNT_NAME")
 
 	if azure_storage_account_Name == "" {
 		klog.Fatal("AZURE_STORAGE_ACCOUNT_NAME environment variable is not set")
 	}
 
-	/*azure_storage_account_Key := os.Getenv("AZURE_STORAGE_ACCOUNT_KEY")
+	azure_storage_container_Name := os.Getenv("STORAGE_CONTAINER_NAME")
 
-	if azure_storage_account_Key == "" {
-		klog.Fatal("AZURE_STORAGE_ACCOUNT_KEY environment variable is not set")
-	}*/
+	if azure_storage_container_Name == "" {
+		klog.Fatal("AZURE_STORAGE_CONTAINER_NAME environment variable is not set")
+	}
 
 	pod_name := os.Getenv("POD_NAME")
 
@@ -50,7 +51,9 @@ func main() {
 	clientID := os.Getenv("AZURE_CLIENT_ID")
 	tenantID := os.Getenv("AZURE_TENANT_ID")
 	tokenFilePath := os.Getenv("AZURE_FEDERATED_TOKEN_FILE")
-	authorityHost := os.Getenv("AZURE_AUTHORITY_HOST")
+	//authorityHost := os.Getenv("AZURE_AUTHORITY_HOST")
+
+	// ...
 
 	if clientID == "" {
 		klog.Fatal("AZURE_CLIENT_ID environment variable is not set")
@@ -60,22 +63,20 @@ func main() {
 	}
 
 	// newClientAssertionCredential
-	cred, err := newClientAssertionCredential(tenantID, clientID, authorityHost, tokenFilePath, nil)
+	cred, err := azidentity.NewWorkloadIdentityCredential(&azidentity.WorkloadIdentityCredentialOptions{
+		ClientID:      clientID,
+		TenantID:      tenantID,
+		TokenFilePath: tokenFilePath,
+	})
+
 	if err != nil {
 		klog.Fatal(err)
 	}
 
 	storageaccountURL := "https://" + azure_storage_account_Name + ".blob.core.windows.net"
-	containerName := "pvc-7caab612-5410-4125-9db4-51fec72610de"
-	blobName := "test.txt"
+	containerName := azure_storage_container_Name
+	blobName := pod_name + ".txt"
 	ctx := context.Background()
-
-	mydata := time.Now().Format(time.RFC3339) + pod_name + pod_ip + "Hello, World!"
-
-	data := []byte(mydata)
-
-	// Create a new Azure Storage Account client
-	//containerURL := "https://" + azure_storage_account_Name + ".blob.core.windows.net/" + "pvc-7caab612-5410-4125-9db4-51fec72610de"
 
 	// Create a new container client
 
@@ -86,10 +87,23 @@ func main() {
 
 	}
 
-	// write a buffer to a blob
-	_, err = client.UploadBuffer(ctx, containerName, blobName, data, &azblob.UploadBufferOptions{})
-	if err != nil {
-		klog.Fatal(err)
+	ticker := time.NewTicker(10 * time.Second)
+	defer ticker.Stop()
+
+	for range ticker.C {
+		// data to write to blob
+		mydata := time.Now().Format(time.RFC3339) + pod_name + "Hello, World!" + "\n"
+		data := []byte(mydata)
+
+		data = append(data, []byte(mydata)...)
+
+		// write a buffer to a blob
+		_, err = client.UploadBuffer(ctx, containerName, blobName, data, &azblob.UploadBufferOptions{})
+		if err != nil {
+			klog.Fatal(err)
+		}
+
+		klog.Infof("Blob uploaded: %s", blobName)
 	}
 
 }

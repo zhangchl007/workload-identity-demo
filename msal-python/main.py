@@ -47,7 +47,6 @@ def main():
             f.write(f"POD Name: {pod_name}\n")
             f.write(f"POD IP: {pod_ip}\n")
             f.write('hello ,I am writing \n')
-            f.close()
           
 
         
