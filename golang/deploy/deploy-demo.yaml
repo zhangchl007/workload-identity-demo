@@ -23,7 +23,7 @@ spec:
         app: workload-golang
     spec:
       containers:
-      - image: quay.io/zhangchl007/workloaddemo:v1
+      - image: quay.io/zhangchl007/workloaddemo:v2
         imagePullPolicy: Always
         name: oidc
         env:

@@ -93,17 +93,38 @@ func main() {
 	for range ticker.C {
 		// data to write to blob
 		mydata := time.Now().Format(time.RFC3339) + pod_name + "Hello, World!" + "\n"
-		data := []byte(mydata)
 
-		data = append(data, []byte(mydata)...)
+		// Open the file
+		file, err := os.OpenFile("/tmp/data.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			klog.Fatal(err)
+		}
 
-		// write a buffer to a blob
-		_, err = client.UploadBuffer(ctx, containerName, blobName, data, &azblob.UploadBufferOptions{})
+		// append data to file
+		if _, err := file.WriteString(mydata); err != nil {
+			klog.Fatal(err)
+		}
+
+		// Close the file
+		err = file.Close()
+		if err != nil {
+			klog.Fatal(err)
+		}
+
+		newfile, err := os.OpenFile("/tmp/data.txt", os.O_RDONLY, 0)
+		if err != nil {
+			klog.Fatal(err)
+		}
+		defer file.Close()
+
+		// upload the file to a blob
+		_, err = client.UploadFile(ctx, containerName, blobName, newfile, &azblob.UploadFileOptions{})
 		if err != nil {
 			klog.Fatal(err)
 		}
 
 		klog.Infof("Blob uploaded: %s", blobName)
+
 	}
 
 }
