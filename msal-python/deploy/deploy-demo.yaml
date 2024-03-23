@@ -5,7 +5,7 @@ metadata:
     azure.workload.identity/use: "true"
     app: workload-demo
   name: workload-demo
-  namespace: kube-system
+  namespace: default
 spec:
   replicas: 1
   selector:
@@ -23,14 +23,14 @@ spec:
         app: workload-demo
     spec:
       containers:
-      - image: quay.io/zhangchl007/workloadpython:v1
+      - image: quay.io/zhangchl007/workloadpython:v6
         imagePullPolicy: Always
         name: oidc
         env:
         - name: STORAGE_ACCOUNT_NAME
-          value: "fusea1baa27d9bd44b269b8"
+          value: "mit000"
         - name: STORAGE_CONTAINER_NAME
-          value: "pvc-7caab612-5410-4125-9db4-51fec72610de"
+          value: "mit"
         - name: POD_NAME
           valueFrom:
             fieldRef:
@@ -43,7 +43,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
-      serviceAccountName: workload-identity-sa
+      serviceAccountName: workidentity-sa
       affinity:
         nodeAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
