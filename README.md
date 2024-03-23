@@ -62,7 +62,7 @@ The `azidentity` module focuses on OAuth authentication with Microsoft Entra ID.
 
 `DefaultAzureCredential` is appropriate for most apps that will be deployed to Azure. It combines common production credentials with development credentials. It attempts to authenticate via the following mechanisms in this order, stopping when one succeeds:
 
-![DefaultAzureCredential authentication flow](img/mermaidjs/DefaultAzureCredentialAuthFlow.svg)
+![DefaultAzureCredential authentication flow](img/DefaultAzureCredentialAuthFlow.svg)
 
 1. **Environment** - `DefaultAzureCredential` will read account information specified via [environment variables](#environment-variables) and use it to authenticate.
 1. **Workload Identity** - If the app is deployed on Kubernetes with environment variables set by the workload identity webhook, `DefaultAzureCredential` will authenticate the configured identity.
